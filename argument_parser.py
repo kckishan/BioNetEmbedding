@@ -37,4 +37,4 @@ def argument_parser():
     parser.add_argument("--batch-size", type=int, default=256,
                         help="Size of the batch. Default is 256.")
     parser.add_argument("--normalize", action="store_false", default=True)
-    return parser.parse_args()
+    return parser.parse_known_args()[0]

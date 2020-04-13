@@ -276,7 +276,15 @@ def train_val_test_split_adjacency(A, p_val=0.10, p_test=0.05, seed=0, neg_mul=1
         assert not connected or sp.csgraph.connected_components(A_hold)[0] == 1
         assert not every_node or ((A_hold - A) > 0).sum() == 0
 
-    return train_ones, train_zeros, val_ones, val_zeros, test_ones, test_zeros
+    dataset = {}
+    dataset['train_edges'] = train_ones
+    dataset['train_edges_false'] = train_zeros
+    dataset['val_edges'] = val_ones
+    dataset['val_edges_false'] = val_zeros
+    dataset['test_edges'] = test_ones
+    dataset['test_edges_false'] = test_zeros
+
+    return dataset
 
 
 def edge_cover(A):
