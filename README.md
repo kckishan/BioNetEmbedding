@@ -1,4 +1,39 @@
-# Biological Network Embedding
++++
+title = "Biological Network Embedding"
+subtitle = "Embedding proteins by preserving their interactions."
+
+# Add a summary to display on homepage (optional).
+summary = ""
+
+date = 2020-04-13T16:51:11-04:00
+draft = false
+
+# Authors. Comma separated list, e.g. `["Bob Smith", "David Jones"]`.
+authors = []
+
+# Tags and categories
+# For example, use `tags = []` for no tags, or the form `tags = ["A Tag", "Another Tag"]` for one or more tags.
+tags = ["Embeddings", "Deep Learning", "Networks"]
+categories = ["Deep Learning"]
+
+# Projects (optional).
+#   Associate this post with one or more of your projects.
+#   Simply enter your project's folder or file name without extension.
+#   E.g. `projects = ["deep-learning"]` references 
+#   `content/project/deep-learning/index.md`.
+#   Otherwise, set `projects = []`.
+# projects = ["internal-project"]
+
+# Featured image
+# To use, add an image named `featured.jpg/png` to your page's folder. 
+[image]
+  # Caption (optional)
+  caption = ""
+
+  # Focal point (optional)
+  # Options: Smart, Center, TopLeft, Top, TopRight, Left, Right, BottomLeft, Bottom, BottomRight
+  focal_point = ""
++++
 
 ## Introduction
 Network embedding aims to learn lower dimensional representations of nodes in the network, that enables to use off-the-shelf machine learning algorithms for downstream tasks such as Node classification, Link Prediction, Clustering and Visualization.
@@ -167,22 +202,20 @@ Details of model working:
 
 Let's consider these steps as  $$z = f_{\theta}(x)$$ where $\theta$ represents the trainable weights and biases of the neural network. We further pass these latent representation $z$ through softmax layer that maximizes the proximity score between interacting proteins and minimizes the score for non-interacting proteins. 
 Softmax layer can be presented as:
-
-$$p(A|B) = \frac{\exp{(\hat{z}_A \cdot z_B)}}{\sum_{i = 1}^{5368}\exp{(\hat{z}_i \cdot z_B)}}$$
-
+$$p(A|B) = \frac{\exp \left(\hat{z}_{A} \cdot z_{B}\right)}{\sum_{i \in N_{g}} \exp \left(\hat{z}_{i} \cdot z_{B}\right)}$$ 
 
 where $\hat{z}$ is the weights on the softmax layer. 
 
-Computing the denominator of above equation is computationally expensive. So, we adopt the approach of <cite>[negative sampling][1]</cite> which samples the negative interactions, interactions with no evidence of their existence, according to some noise distribution for each interaction. This approach allows us to sample a small subset of genes from the network as negative samples for a gene, considering that the genes on selected subset don’t fall in the neighborhood $N_B$ of the gene. Now, above equation becomes: 
+Computing the denominator of above equation is computationally expensive. So, we adopt the approach of <cite>[negative sampling][1]</cite> which samples the negative interactions, interactions with no evidence of their existence, according to some noise distribution for each interaction. This approach allows us to sample a small subset of genes from the network as negative samples for a gene, considering that the genes on selected subset don’t fall in the neighborhood $N_B$ of the gene. Now, above equation becomes:
 
-$$\frac{\exp{(\hat{z}_A \cdot z_B)}}{\sum_{i \in N_B}\exp{(\hat{z}_i \cdot z_B)}}$$
+$$\frac{\exp \left(\hat{z}_{A} \cdot z_{B}\right)}{\sum_{i \in N_{B}} \exp \left(\hat{z}_{i} \cdot z_{B}\right)}$$
 
 Above objective function enhances the similarity of a gene viwith its neighborhood genes $i \in N_B$ and weakens the similarity with genes not in its neighborhood genes $i \notin N_B$. It is inappropriate to assume that the two genes in the network are not related if they are not connected. It may be the case that there is not enough experimental evidence to support that they are related yet. Thus, forcing the dissimilarity of a gene with all other genes, not in its neighborhood $N_B$ seems to be inappropriate.
 
 
-After training the model, we predict the probability of interactions between protein A and B by taking the dot product between the embeddings of protein A and B and squeezing it through sigmoid function:
+After training the model, we predict the probability of interactions between protein A and B by taking the dot product between the embeddings of protein A and B and squeezing it through sigmoid function.
 
-$$probability = \sigma(z_A \cdot z_B)$$
+$$ \text{probability} =\sigma\left(z_{A} \cdot z_{B}\right)$$
 
 [1]: https://papers.nips.cc/paper/5021-distributed-representations-of-words-and-phrases-and-their-compositionality.pdf
 
@@ -203,18 +236,18 @@ Now, we can train our model with the training data and monitor its performance o
 trainer.fit()
 ```
 
-    Epoch:   1, Training Loss: 1.684, Validation AUC: 0.8498 Validation PR: 0.8638 *
-    Epoch:   2, Training Loss: 1.569, Validation AUC: 0.8880 Validation PR: 0.9034 *
-    Epoch:   3, Training Loss: 1.510, Validation AUC: 0.9052 Validation PR: 0.9193 *
-    Epoch:   4, Training Loss: 1.465, Validation AUC: 0.9128 Validation PR: 0.9261 *
-    Epoch:   5, Training Loss: 1.434, Validation AUC: 0.9171 Validation PR: 0.9298 *
-    Epoch:   6, Training Loss: 1.424, Validation AUC: 0.9196 Validation PR: 0.9318 *
-    Epoch:   7, Training Loss: 1.398, Validation AUC: 0.9220 Validation PR: 0.9340 *
-    Epoch:   8, Training Loss: 1.387, Validation AUC: 0.9242 Validation PR: 0.9365 *
-    Epoch:   9, Training Loss: 1.374, Validation AUC: 0.9240 Validation PR: 0.9365 
-    Epoch:  10, Training Loss: 1.370, Validation AUC: 0.9218 Validation PR: 0.9354 
+    Epoch:   1, Training Loss: 1.685, Validation AUC: 0.8501 Validation PR: 0.8652 *
+    Epoch:   2, Training Loss: 1.567, Validation AUC: 0.8899 Validation PR: 0.9049 *
+    Epoch:   3, Training Loss: 1.506, Validation AUC: 0.9071 Validation PR: 0.9210 *
+    Epoch:   4, Training Loss: 1.460, Validation AUC: 0.9142 Validation PR: 0.9274 *
+    Epoch:   5, Training Loss: 1.422, Validation AUC: 0.9191 Validation PR: 0.9321 *
+    Epoch:   6, Training Loss: 1.413, Validation AUC: 0.9214 Validation PR: 0.9342 *
+    Epoch:   7, Training Loss: 1.389, Validation AUC: 0.9235 Validation PR: 0.9359 *
+    Epoch:   8, Training Loss: 1.383, Validation AUC: 0.9245 Validation PR: 0.9374 *
+    Epoch:   9, Training Loss: 1.373, Validation AUC: 0.9242 Validation PR: 0.9373 
+    Epoch:  10, Training Loss: 1.369, Validation AUC: 0.9224 Validation PR: 0.9361 
     Early stopping
-    Total Training time:  167.99464678764343
+    Total Training time:  166.11041498184204
 
 
 ### Visualization of training loss and validation performance
@@ -247,4 +280,6 @@ plt.show()
 trainer.evaluate()
 ```
 
-    Test ROC Score: 0.942, Test AP score: 0.951
+    Test ROC Score: 0.943, Test AP score: 0.953
+
+
