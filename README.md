@@ -1,39 +1,4 @@
-+++
-title = "Biological Network Embedding"
-subtitle = "Embedding proteins by preserving their interactions."
-
-# Add a summary to display on homepage (optional).
-summary = ""
-
-date = 2020-04-13T16:51:11-04:00
-draft = false
-
-# Authors. Comma separated list, e.g. `["Bob Smith", "David Jones"]`.
-authors = []
-
-# Tags and categories
-# For example, use `tags = []` for no tags, or the form `tags = ["A Tag", "Another Tag"]` for one or more tags.
-tags = ["Embeddings", "Deep Learning", "Networks"]
-categories = ["Deep Learning"]
-
-# Projects (optional).
-#   Associate this post with one or more of your projects.
-#   Simply enter your project's folder or file name without extension.
-#   E.g. `projects = ["deep-learning"]` references 
-#   `content/project/deep-learning/index.md`.
-#   Otherwise, set `projects = []`.
-# projects = ["internal-project"]
-
-# Featured image
-# To use, add an image named `featured.jpg/png` to your page's folder. 
-[image]
-  # Caption (optional)
-  caption = ""
-
-  # Focal point (optional)
-  # Options: Smart, Center, TopLeft, Top, TopRight, Left, Right, BottomLeft, Bottom, BottomRight
-  focal_point = ""
-+++
+# Biological Network Embedding
 
 ## Introduction
 Network embedding aims to learn lower dimensional representations of nodes in the network, that enables to use off-the-shelf machine learning algorithms for downstream tasks such as Node classification, Link Prediction, Clustering and Visualization.
@@ -202,19 +167,21 @@ Details of model working:
 
 Let's consider these steps as  $$z = f_{\theta}(x)$$ where $\theta$ represents the trainable weights and biases of the neural network. We further pass these latent representation $z$ through softmax layer that maximizes the proximity score between interacting proteins and minimizes the score for non-interacting proteins. 
 Softmax layer can be presented as:
+
 $$p(A|B) = \frac{\exp{(\hat{z}_A \cdot z_B)}}{\sum_{i = 1}^{5368}\exp{(\hat{z}_i \cdot z_B)}}$$
 
 
 where $\hat{z}$ is the weights on the softmax layer. 
 
 Computing the denominator of above equation is computationally expensive. So, we adopt the approach of <cite>[negative sampling][1]</cite> which samples the negative interactions, interactions with no evidence of their existence, according to some noise distribution for each interaction. This approach allows us to sample a small subset of genes from the network as negative samples for a gene, considering that the genes on selected subset don’t fall in the neighborhood $N_B$ of the gene. Now, above equation becomes: 
-$$\frac{\exp{(\hat{z}_A \cdot z_B)}}{\sum_{i \in N_B}\exp{(\hat{z}_i \cdot z_B)}}$$
 
+$$\frac{\exp{(\hat{z}_A \cdot z_B)}}{\sum_{i \in N_B}\exp{(\hat{z}_i \cdot z_B)}}$$
 
 Above objective function enhances the similarity of a gene viwith its neighborhood genes $i \in N_B$ and weakens the similarity with genes not in its neighborhood genes $i \notin N_B$. It is inappropriate to assume that the two genes in the network are not related if they are not connected. It may be the case that there is not enough experimental evidence to support that they are related yet. Thus, forcing the dissimilarity of a gene with all other genes, not in its neighborhood $N_B$ seems to be inappropriate.
 
 
-After training the model, we predict the probability of interactions between protein A and B by taking the dot product between the embeddings of protein A and B and squeezing it through sigmoid function.
+After training the model, we predict the probability of interactions between protein A and B by taking the dot product between the embeddings of protein A and B and squeezing it through sigmoid function:
+
 $$probability = \sigma(z_A \cdot z_B)$$
 
 [1]: https://papers.nips.cc/paper/5021-distributed-representations-of-words-and-phrases-and-their-compositionality.pdf
