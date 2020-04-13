@@ -15,33 +15,36 @@ class BioNetEmbedding(nn.Module):
         super(BioNetEmbedding, self).__init__()
         self.args = args
         self.device = device
-        self.net_emb_dim = self.args.net_emb_dim
+        self.emb_dim = self.args.emb_dim
         self.num_nodes = num_nodes
-        self.abstract_feature_size = self.net_emb_dim
         self.n_sampled = 10
 
         self.setup_network_structure()
         self.criterion = nn.CrossEntropyLoss()
-        
 
     def setup_network_structure(self):
-        self.net_embedding = nn.Embedding(self.num_nodes, self.net_emb_dim)
-        self.hidden_layer = nn.Linear(self.abstract_feature_size, self.args.latent_size)
+        #Embedding layer
+        self.net_embedding = nn.Embedding(self.num_nodes, self.emb_dim)
         self.init_weight(self.net_embedding)
-        self.dropout = nn.Dropout(self.args.dropout)
-        self.bn_net = nn.BatchNorm1d(self.net_emb_dim)
+        
+        # Hidden layers
+        self.hidden_layer = nn.Linear(self.emb_dim, self.args.latent_size)
+        self.init_weight(self.hidden_layer)
+
+        self.layers = nn.ModuleList([self.net_embedding, self.hidden_layer])
+
         self.sampled_softmax = SampledSoftmax(
             self.num_nodes, nsampled=self.n_sampled, nhid=self.args.latent_size, tied_weight=None,device=self.device)
 
     def forward(self, source, targets):
-        emb = self.net_embedding(source)
-        net_emb = self.dropout(self.bn_net(emb))
-        
-        z = self.hidden_layer(net_emb)
+        latent = source
+        for layer in self.layers:
+            latent = layer(latent)
 
-        z = safediv(z, z.norm(dim=1, keepdim=True))
+        # normalizing the embedding
+        latent = safediv(latent, latent.norm(dim=1, keepdim=True))
 
-        logits, new_targets = self.sampled_softmax(z, targets)
+        logits, new_targets = self.sampled_softmax(latent, targets)
         if self.training:    
             logits = logits.view(-1, self.n_sampled+1)  
             loss = self.criterion(logits, new_targets)
@@ -49,7 +52,7 @@ class BioNetEmbedding(nn.Module):
             logits = logits.view(-1, self.num_nodes)  
             loss = self.criterion(logits, targets)
 
-        return z, loss
+        return latent, loss
 
     def init_weight(self, layer):
         nn.init.xavier_uniform_(layer.weight)

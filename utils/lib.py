@@ -22,6 +22,13 @@ def table_printer(args):
     print(table.draw())
 
 
+def load_network(filename):
+    print("### Loading [%s]..." % (filename))
+    edgelist = pd.read_csv(filename, sep=' ')
+    G = nx.from_edgelist(edgelist.values[:, :2].tolist())
+    A = nx.adjacency_matrix(G)
+    return A
+
 def get_edge_embeddings(Embeddings, edge_list):
     embs = []
     for i in range(len(edge_list)):
@@ -47,6 +54,7 @@ def evaluate_ROC_from_matrix(X_edges, y_true, matrix):
     pr = average_precision_score(y_true, y_predict)
     return roc, pr
 
+
 # code from graph2gauss https://github.com/abojchevski/graph2gauss/blob/master/g2g/utils.py
 def edges_to_sparse(edges, N, values=None):
     """
@@ -69,13 +77,6 @@ def edges_to_sparse(edges, N, values=None):
 
     return sp.coo_matrix((values, (edges[:, 0], edges[:, 1])), shape=(N, N)).tocsr()
 
-
-def load_network(filename, num_genes):
-    print("### Loading [%s]..." % (filename))
-    edgelist = pd.read_csv(filename, sep=' ')
-    G = nx.from_edgelist(edgelist.values[:, :2].tolist())
-    A = nx.adjacency_matrix(G)
-    return A
 
 def train_val_test_split_adjacency(A, p_val=0.10, p_test=0.05, seed=0, neg_mul=1,
                                    every_node=True, connected=False, undirected=False,

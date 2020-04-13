@@ -15,13 +15,10 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # Define path
 path = './data/' + args.dataset + '/'
 
-geneids = pd.read_csv(path + args.gene_ids_file, sep=" ")
-num_genes = geneids.shape[0]
-
 # Define the input to BioNetEmbedding model
 link_file = path + args.edgelist_file
 
-A = load_network(link_file, num_genes)
+A = load_network(link_file)
 N = A.shape[0]
 data_splits = train_val_test_split_adjacency(A, p_val=0.1, p_test=0.05, seed=0, neg_mul=1,
                                              every_node=False, connected=False, undirected=True,
@@ -114,7 +111,6 @@ for epoch in range(epochs):
 print("Total Training time: ", time()-start_time)
 
 embeddings = model.embedding_checkpoints(mode="load")
-print(embeddings.shape)
 
 # Test-set
 testing_edges = np.concatenate([test_edges, test_edges_false])
@@ -123,5 +119,5 @@ test_edge_labels = np.concatenate([np.ones(len(test_edges)), np.zeros(len(test_e
 adj_matrix_rec = np.dot(embeddings, embeddings.T)
 test_roc, test_ap = evaluate_ROC_from_matrix(testing_edges, test_edge_labels, adj_matrix_rec)
 
-msg = "BioNetEmbedding Test ROC Score: {0:.9f}, BioNetEmbedding Test AP score: {1:.9f}"
+msg = "Test ROC Score: {0:.9f}, Test AP score: {1:.9f}"
 print(msg.format(test_roc, test_ap))

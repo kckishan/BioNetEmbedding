@@ -32,7 +32,7 @@ def argument_parser():
                         help="Learning rate. Default is 1e-5.")
     parser.add_argument("--latent-size", type=int, default=128,
                         help="Dimension of latent representation. Default is 128.")
-    parser.add_argument("--net-emb-dim", type=int, default=128,
+    parser.add_argument("--emb-dim", type=int, default=128,
                         help="Dimension of structure representation. Default is 128.")
     parser.add_argument("--batch-size", type=int, default=256,
                         help="Size of the batch. Default is 256.")
