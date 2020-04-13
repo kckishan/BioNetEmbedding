@@ -1,9 +1,6 @@
 from torch.utils.data import Dataset
-import networkx as nx
-from numpy.random import choice
 
-
-class GNEDataset(Dataset):
+class BioNetEmbeddingDataset(Dataset):
     def __init__(self, interactions):
         self.interactions = interactions
 

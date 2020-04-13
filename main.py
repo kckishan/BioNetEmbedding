@@ -3,12 +3,9 @@ from argument_parser import argument_parser
 import pandas as pd
 from torch.utils.data import DataLoader
 import torch
-from models import GNE
+from models import BioNetEmbedding
 import networkx as nx
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import average_precision_score, roc_auc_score
 from time import time
-
 
 args = argument_parser()
 table_printer(args)
@@ -21,7 +18,7 @@ path = './data/' + args.dataset + '/'
 geneids = pd.read_csv(path + args.gene_ids_file, sep=" ")
 num_genes = geneids.shape[0]
 
-# Define the input to GNE model
+# Define the input to BioNetEmbedding model
 link_file = path + args.edgelist_file
 
 A = load_network(link_file, num_genes)
@@ -41,7 +38,7 @@ print("Test interactions (positive):", len(test_edges))
 print("Test interactions (negative):", len(test_edges_false))
 
 train_edges = torch.Tensor(train_edges).type(torch.LongTensor)
-trainData = GNEDataset(train_edges)
+trainData = BioNetEmbeddingDataset(train_edges)
 
 validation_edges = np.concatenate([val_edges, val_edges_false])
 val_edge_labels = np.concatenate([np.ones(len(val_edges)), np.zeros(len(val_edges_false))])
@@ -49,7 +46,7 @@ val_edge_labels = np.concatenate([np.ones(len(val_edges)), np.zeros(len(val_edge
 batch_size = 256
 train_loader = DataLoader(trainData, batch_size=batch_size, shuffle=True)
 
-model = GNE(N, args, device)
+model = BioNetEmbedding(N, args, device)
 model = model.to(device)
 print(model)
 optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay= args.l2)
@@ -126,5 +123,5 @@ test_edge_labels = np.concatenate([np.ones(len(test_edges)), np.zeros(len(test_e
 adj_matrix_rec = np.dot(embeddings, embeddings.T)
 test_roc, test_ap = evaluate_ROC_from_matrix(testing_edges, test_edge_labels, adj_matrix_rec)
 
-msg = "GNE Test ROC Score: {0:.9f}, GNE Test AP score: {1:.9f}"
+msg = "BioNetEmbedding Test ROC Score: {0:.9f}, BioNetEmbedding Test AP score: {1:.9f}"
 print(msg.format(test_roc, test_ap))

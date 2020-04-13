@@ -1,2 +1,2 @@
 from .Sampled_softmax import *
-from .GNE import *
+from .BioNetEmbedding import *

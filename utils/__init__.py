@@ -1,2 +1,2 @@
-from .GNEDataset import *
+from .BioNetEmbeddingDataset import *
 from .lib import *

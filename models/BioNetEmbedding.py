@@ -10,9 +10,9 @@ def safediv(a, b):
     b = torch.where(b == 0, torch.ones_like(b), b)
     return a / b
 
-class GNE(nn.Module):
+class BioNetEmbedding(nn.Module):
     def __init__(self, num_nodes, args, device):
-        super(GNE, self).__init__()
+        super(BioNetEmbedding, self).__init__()
         self.args = args
         self.device = device
         self.net_emb_dim = self.args.net_emb_dim

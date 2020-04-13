@@ -9,7 +9,7 @@ def argument_parser():
     model parameters: ArgumentParser Namespace
         The ArgumentParser Namespace that contains the model parameters.
     """
-    parser = argparse.ArgumentParser(description="Run GNE")
+    parser = argparse.ArgumentParser(description="Run BioNetEmbedding")
 
     parser.add_argument("--data-folder", nargs="?", default="./data/", help="The data folder.")
     parser.add_argument("--dataset", nargs="?", default="yeast",

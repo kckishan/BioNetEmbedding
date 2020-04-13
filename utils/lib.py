@@ -21,9 +21,33 @@ def table_printer(args):
                    [[k.replace("_", " ").capitalize(), args[k]] for k in keys])
     print(table.draw())
 
+
+def get_edge_embeddings(Embeddings, edge_list):
+    embs = []
+    for i in range(len(edge_list)):
+        edge = np.array(edge_list)[i, :]
+        node1 = int(edge[0])
+        node2 = int(edge[1])
+        emb1 = Embeddings[node1]
+        emb2 = Embeddings[node2]
+        edge_emb = np.multiply(emb1, emb2)
+        embs.append(edge_emb)
+    embs = np.array(embs)
+    return embs
+
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
+
+# Evaluate ROC using predicted matrix
+def evaluate_ROC_from_matrix(X_edges, y_true, matrix):
+    y_predict = [sigmoid(matrix[int(edge[0]), int(edge[1])]) for edge in X_edges]
+    roc = roc_auc_score(y_true, y_predict)
+    if roc < 0.5:
+        roc = 1 - roc
+    pr = average_precision_score(y_true, y_predict)
+    return roc, pr
+
 # code from graph2gauss https://github.com/abojchevski/graph2gauss/blob/master/g2g/utils.py
-
-
 def edges_to_sparse(edges, N, values=None):
     """
     Create a sparse adjacency matrix from an array of edge indices and (optionally) values.
@@ -315,28 +339,3 @@ def edge_cover(A):
     assert len(np.unique(edges)) == N
 
     return edges
-
-def get_edge_embeddings(Embeddings, edge_list):
-    embs = []
-    for i in range(len(edge_list)):
-        edge = np.array(edge_list)[i, :]
-        node1 = int(edge[0])
-        node2 = int(edge[1])
-        emb1 = Embeddings[node1]
-        emb2 = Embeddings[node2]
-        edge_emb = np.multiply(emb1, emb2)
-        embs.append(edge_emb)
-    embs = np.array(embs)
-    return embs
-
-def sigmoid(x):
-    return 1 / (1 + np.exp(-x))
-
-# Evaluate ROC using predicted matrix
-def evaluate_ROC_from_matrix(X_edges, y_true, matrix):
-    y_predict = [sigmoid(matrix[int(edge[0]), int(edge[1])]) for edge in X_edges]
-    roc = roc_auc_score(y_true, y_predict)
-    if roc < 0.5:
-        roc = 1 - roc
-    pr = average_precision_score(y_true, y_predict)
-    return roc, pr
