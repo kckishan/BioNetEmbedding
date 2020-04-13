@@ -165,7 +165,11 @@ Details of model working:
 1. *Embedding(5368, 128)* encodes the one-hot encoded representation of 5368 proteins identifier to a embedded vector of dimension 128.
 2. Linear layer then projects the embedded vector to different space $z \in \mathbb{R}^{5638 \times 128}$.
 
-Let's consider these steps as  $$z = f_{\theta}(x)$$ where $\theta$ represents the trainable weights and biases of the neural network. We further pass these latent representation $z$ through softmax layer that maximizes the proximity score between interacting proteins and minimizes the score for non-interacting proteins. 
+Let's consider these steps as  
+$$z = f_{\theta}(x)$$ 
+where $\theta$  represents the trainable weights and biases of the neural network. 
+We further pass these latent representation $z$ through softmax layer that maximizes the proximity score between interacting proteins and minimizes the score for non-interacting proteins. 
+
 Softmax layer can be presented as:
 $$p(A|B) = \frac{\exp \left(\hat{z}_{A} \cdot z_{B}\right)}{\sum_{i \in N_{g}} \exp \left(\hat{z}_{i} \cdot z_{B}\right)}$$ 
 
@@ -246,4 +250,3 @@ trainer.evaluate()
 ```
 
     Test ROC Score: 0.943, Test AP score: 0.953
-
