@@ -50,7 +50,7 @@ class Trainer:
         self.train_loader = DataLoader(trainData, batch_size=self.args.batch_size, shuffle=True)
 
     def fit(self):
-        optimizer = torch.optim.Adam(self.model.parameters(), lr=self.args.lr, weight_decay=self.args.l2)
+        optimizer = torch.optim.Adam(self.model.parameters(), lr=self.args.lr, weight_decay=self.args.l2_penalty)
 
         val_loss_min = np.Inf
         start_time = time()
@@ -58,6 +58,10 @@ class Trainer:
         patience = 0
         best_validation_accuracy = 0.0
         early_stopping = 2
+
+        self.train_losses = []
+        self.valid_auc = []
+        self.valid_pr = []
 
         for epoch in range(self.args.epochs):
             train_loss = 0.0
@@ -101,8 +105,12 @@ class Trainer:
                 improved_str = ''
                 patience += 1
 
+            self.train_losses.append(avg_loss)
+            self.valid_auc.append(roc)
+            self.valid_pr.append(pr)
+
             # Status-message for printing.
-            msg = "Epoch: {0:>6}, Train-Batch Loss: {1:.9f}, Validation AUC: {2:.9f} Validation PR: {3:.9f} {4}"
+            msg = "Epoch: {0:>3}, Training Loss: {1:.3f}, Validation AUC: {2:.4f} Validation PR: {3:.4f} {4}"
             print(msg.format(epoch + 1, avg_loss, roc, pr, improved_str))
 
             # Early stopping: If no improvement found in the required number of iterations, stop training the model
@@ -123,8 +131,5 @@ class Trainer:
         adj_matrix_rec = np.dot(embeddings, embeddings.T)
         test_roc, test_ap = evaluate_ROC_from_matrix(testing_edges, test_edge_labels, adj_matrix_rec)
 
-        msg = "Test ROC Score: {0:.9f}, Test AP score: {1:.9f}"
-        print(msg.format(test_roc, test_ap))
-
-
-
+        msg = "Test ROC Score: {0:.3f}, Test AP score: {1:.3f}"
+        print(msg.format(round(test_roc,3), round(test_ap, 3)))
