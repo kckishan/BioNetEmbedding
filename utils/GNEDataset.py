@@ -4,11 +4,12 @@ from numpy.random import choice
 
 
 class GNEDataset(Dataset):
-    def __init__(self, features):
-        self.features = features
+    def __init__(self, interactions):
+        self.interactions = interactions
 
     def __len__(self):
-        return len(self.features)
+        return len(self.interactions)
 
     def __getitem__(self, indx):
-        return indx, self.features[indx]
+        edge = self.interactions[indx]
+        return edge[0], edge[1]

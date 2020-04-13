@@ -4,9 +4,7 @@ import warnings
 from texttable import Texttable
 import networkx as nx
 import pandas as pd
-from sklearn.preprocessing import scale
-# from https://github.com/benedekrozemberczki/MixHop-and-N-GCN/blob/master/src/utils.py
-
+from sklearn.metrics import average_precision_score, roc_auc_score
 
 def table_printer(args):
     """
@@ -51,28 +49,9 @@ def edges_to_sparse(edges, N, values=None):
 def load_network(filename, num_genes):
     print("### Loading [%s]..." % (filename))
     edgelist = pd.read_csv(filename, sep=' ')
-    G = nx.from_edgelist(edgelist.values[:1000, :2].tolist())
+    G = nx.from_edgelist(edgelist.values[:, :2].tolist())
     A = nx.adjacency_matrix(G)
-    return A, list(G.nodes())
-
-# Create Data Loader
-# Load expression data file of shape E * N where N is number of genes and E is number of experiments
-
-
-def load_data(datafile, nodes, normalize=True):
-    """
-    This function loads data set
-    :param datafile:
-    :return expression data:
-    """
-    # Load data file
-    df = pd.read_csv(datafile, sep='\t', header=0)
-    df.columns = [int(x[1:]) - 1 for x in df.columns]
-    if normalize == True:
-        df = pd.DataFrame(scale(df, axis=0))
-    t_data = df.T
-    return t_data.values[nodes, :]
-
+    return A
 
 def train_val_test_split_adjacency(A, p_val=0.10, p_test=0.05, seed=0, neg_mul=1,
                                    every_node=True, connected=False, undirected=False,
@@ -141,7 +120,7 @@ def train_val_test_split_adjacency(A, p_val=0.10, p_test=0.05, seed=0, neg_mul=1
     E = A.nnz
     N = A.shape[0]
     s_train = int(E * (1 - p_val - p_test))
-
+    
     idx = np.arange(N)
 
     # hold some edges so each node appears at least once
@@ -239,9 +218,10 @@ def train_val_test_split_adjacency(A, p_val=0.10, p_test=0.05, seed=0, neg_mul=1
 
     train_zeros = test_zeros[:s_train_zeros]
     test_zeros = test_zeros[s_train_zeros:]
-    val_zeros = test_zeros[:s_val_zeros]
-    test_zeros = test_zeros[s_val_zeros:]
 
+    val_zeros = test_zeros[:s_val_ones]
+    test_zeros = test_zeros[s_val_ones:]
+     
     if undirected:
         # put (j, i) edges for every (i, j) edge in the respective sets and form back original A
         def symmetrize(x): return np.row_stack((x, np.column_stack((x[:, 1], x[:, 0]))))
@@ -335,3 +315,28 @@ def edge_cover(A):
     assert len(np.unique(edges)) == N
 
     return edges
+
+def get_edge_embeddings(Embeddings, edge_list):
+    embs = []
+    for i in range(len(edge_list)):
+        edge = np.array(edge_list)[i, :]
+        node1 = int(edge[0])
+        node2 = int(edge[1])
+        emb1 = Embeddings[node1]
+        emb2 = Embeddings[node2]
+        edge_emb = np.multiply(emb1, emb2)
+        embs.append(edge_emb)
+    embs = np.array(embs)
+    return embs
+
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
+
+# Evaluate ROC using predicted matrix
+def evaluate_ROC_from_matrix(X_edges, y_true, matrix):
+    y_predict = [sigmoid(matrix[int(edge[0]), int(edge[1])]) for edge in X_edges]
+    roc = roc_auc_score(y_true, y_predict)
+    if roc < 0.5:
+        roc = 1 - roc
+    pr = average_precision_score(y_true, y_predict)
+    return roc, pr

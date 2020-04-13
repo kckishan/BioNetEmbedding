@@ -71,15 +71,16 @@ class LogUniformSampler(object):
 
 
 class SampledSoftmax(nn.Module):
-    def __init__(self, ntokens, nsampled, nhid, tied_weight):
+    def __init__(self, ntokens, nsampled, nhid, tied_weight, device):
         super(SampledSoftmax, self).__init__()
 
+        self.device = device
         # Parameters
         self.ntokens = ntokens
         self.nsampled = nsampled
 
         self.sampler = LogUniformSampler(self.ntokens)
-        self.params = nn.Linear(nhid, ntokens)
+        self.params = nn.Linear(nhid, ntokens).to(device)
 
         if tied_weight is not None:
             self.params.weight = tied_weight
@@ -101,9 +102,9 @@ class SampledSoftmax(nn.Module):
         batch_size, d = inputs.size()
         sample_ids, true_freq, sample_freq = sample_values
 
-        sample_ids = Variable(torch.LongTensor(sample_ids))
-        true_freq = Variable(torch.FloatTensor(true_freq))
-        sample_freq = Variable(torch.FloatTensor(sample_freq))
+        sample_ids = Variable(torch.LongTensor(sample_ids)).to(self.device)
+        true_freq = Variable(torch.FloatTensor(true_freq)).to(self.device)
+        sample_freq = Variable(torch.FloatTensor(sample_freq)).to(self.device)
 
         # gather true labels - weights and frequencies
         true_weights = self.params.weight[labels, :]
@@ -129,8 +130,8 @@ class SampledSoftmax(nn.Module):
 
         # return logits and new_labels
         logits = torch.cat((torch.unsqueeze(true_logits, dim=1), sample_logits), dim=1)
-        new_targets = Variable(torch.zeros(batch_size).long())
+        new_targets = Variable(torch.zeros(batch_size).long()).to(self.device)
         return logits, new_targets
 
-    def full(self, inputs):
-        return self.params(inputs)
+    def full(self, inputs, labels):
+        return self.params(inputs), labels
