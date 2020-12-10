@@ -245,3 +245,15 @@ trainer.evaluate()
 
     Test ROC Score: 0.942, Test AP score: 0.951
 
+If you find the code useful, cite us at:
+ 
+       @article{kishan2019gne,
+          title={GNE: a deep learning framework for gene network inference by aggregating biological information},
+          author={Kishan, KC and Li, Rui and Cui, Feng and Yu, Qi and Haake, Anne R},
+          journal={BMC systems biology},
+          volume={13},
+          number={2},
+          pages={38},
+          year={2019},
+          publisher={Springer}
+        }
